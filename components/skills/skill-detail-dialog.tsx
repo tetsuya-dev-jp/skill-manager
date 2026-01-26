@@ -14,6 +14,7 @@ import { useState } from 'react';
 import { getAgentLabel } from '@/lib/agents/specs';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
 
 interface SkillDetailDialogProps {
   skill: Skill | null;
@@ -84,6 +85,7 @@ export function SkillDetailDialog({ skill, open, onOpenChange }: SkillDetailDial
                 <div className="space-y-4 text-sm leading-relaxed">
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[[rehypeHighlight, { ignoreMissing: true }]]}
                     components={{
                       h1: ({ className, ...props }) => (
                         <h1
@@ -141,7 +143,7 @@ export function SkillDetailDialog({ skill, open, onOpenChange }: SkillDetailDial
                       pre: ({ className, ...props }) => (
                         <pre
                           className={cn(
-                            'bg-background brutal-border p-3 overflow-x-auto text-xs font-mono',
+                            'bg-[var(--code-bg)] text-[var(--code-fg)] brutal-border p-3 overflow-x-auto text-xs font-mono',
                             className
                           )}
                           {...props}
