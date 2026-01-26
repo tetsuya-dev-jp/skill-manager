@@ -1,20 +1,18 @@
 # Skill Manager
+Local control center for agent skills on your machine.
 
 [日本語](README.ja.md)
 
 ![Skill Manager dashboard](public/screenshot.png)
 
-## Overview
-Skill Manager is a local web UI for managing agent skills across Claude Code and Codex. It scans your local skill directories, lets you filter and inspect skills, shares them via symlinks, and exports backups as ZIP.
+## What it does
+- Indexes skills across multiple agents and shared libraries
+- Lets you search, filter, and inspect skill metadata
+- Renders skill content as markdown with syntax highlighting
+- Shares skills across agents via symlinks
+- Exports filtered skills as a ZIP backup
 
-## Features
-- Unified view of Claude/Codex/shared skills
-- Search, filter, and inspect skill metadata
-- Share skills between agents (symlink-based)
-- Export selected skills to a ZIP backup
-
-## Getting Started
-
+## Quickstart
 ### Requirements
 - Node.js 18+ (20+ recommended)
 
@@ -34,9 +32,26 @@ npm run build
 npm run start
 ```
 
-## Skill Locations
+## How skills are detected
+Each skill is a directory (or symlink) that contains `SKILL.md`.
+The app scans the agent paths below and builds the UI from what it finds.
+
+## Supported Agents
+- Antigravity: `~/.gemini/antigravity/global_skills`
 - Claude Code: `~/.claude/skills`
+- Cline: `~/.cline/skills`
 - Codex: `~/.codex/skills`
+- Cursor: `~/.cursor/skills`
+- Gemini CLI: `~/.gemini/skills`
+- GitHub Copilot: `~/.copilot/skills`
+- Goose: `~/.config/goose/skills`
+- Kiro CLI: `~/.kiro/skills`
+- MCPJam: `~/.mcpjam/skills`
+- OpenCode: `~/.config/opencode/skills`
+- Pi: `~/.pi/agent/skills`
+- Qwen Code: `~/.qwen/skills`
+- Trae: `~/.trae/skills`
+- Windsurf: `~/.codeium/windsurf/skills`
 - Shared: `~/.agents/skills` (symlinked)
 
 ## Notes

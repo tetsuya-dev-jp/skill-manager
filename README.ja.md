@@ -1,20 +1,18 @@
 # Skill Manager
+ローカルのエージェントスキルを一括管理するためのコントロールセンター。
 
 [English](README.md)
 
 ![Skill Manager ダッシュボード](public/screenshot.png)
 
-## 概要
-Skill Manager は Claude Code と Codex のスキルをローカルで管理するための Web UI です。ローカルのスキルディレクトリを走査し、検索・絞り込み・詳細確認・共有（シンボリックリンク）・ZIP でのエクスポートを行えます。
+## できること
+- 複数エージェントと共有スキルをまとめて一覧化
+- 検索・絞り込み・メタデータ確認
+- マークダウン表示（コードハイライト対応）
+- スキルをシンボリックリンクで共有
+- フィルタ済みスキルを ZIP でエクスポート
 
-## 特長
-- Claude/Codex/共有スキルの一覧表示
-- 検索・フィルタ・メタデータ確認
-- エージェント間のスキル共有（symlink）
-- スキルを ZIP でバックアップ
-
-## セットアップ
-
+## クイックスタート
 ### 必要環境
 - Node.js 18+（20+ 推奨）
 
@@ -34,9 +32,26 @@ npm run build
 npm run start
 ```
 
-## スキル配置場所
+## スキルの判定ルール
+各スキルは `SKILL.md` を含むディレクトリ（またはシンボリックリンク）です。
+下記のパスをスキャンして UI を構築します。
+
+## 対応エージェント
+- Antigravity: `~/.gemini/antigravity/global_skills`
 - Claude Code: `~/.claude/skills`
+- Cline: `~/.cline/skills`
 - Codex: `~/.codex/skills`
+- Cursor: `~/.cursor/skills`
+- Gemini CLI: `~/.gemini/skills`
+- GitHub Copilot: `~/.copilot/skills`
+- Goose: `~/.config/goose/skills`
+- Kiro CLI: `~/.kiro/skills`
+- MCPJam: `~/.mcpjam/skills`
+- OpenCode: `~/.config/opencode/skills`
+- Pi: `~/.pi/agent/skills`
+- Qwen Code: `~/.qwen/skills`
+- Trae: `~/.trae/skills`
+- Windsurf: `~/.codeium/windsurf/skills`
 - 共有: `~/.agents/skills`（シンボリックリンク）
 
 ## 補足
