@@ -1,11 +1,14 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { ApiResponse, Skill, Agent } from '@/types';
 import { cn } from '@/lib/utils';
-import { getAgentLabel, getAgentMonogram } from '@/lib/agents/specs';
+import { getAgentLabel } from '@/lib/agents/specs';
+import { AgentIcon } from '@/components/agents/agent-icon';
+import { SkillDetailDialog } from '@/components/skills/skill-detail-dialog';
 
 export default function Dashboard() {
   const { data: skillsRes, isLoading: skillsLoading } = useQuery({
@@ -24,6 +27,8 @@ export default function Dashboard() {
     },
   });
 
+  const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   const skills = skillsRes?.data || [];
   const agents = agentsRes?.data || [];
   const visibleAgents = agents.filter(agent => agent.enabled || agent.skillCount > 0 || agent.id === 'shared');
@@ -35,6 +40,10 @@ export default function Dashboard() {
   const sharedCount = skills.filter(s => s.isShared).length;
   const handleExport = () => {
     window.open('/api/skills/export', '_blank');
+  };
+  const handleViewDetail = (skill: Skill) => {
+    setSelectedSkill(skill);
+    setDetailOpen(true);
   };
 
   if (skillsLoading || agentsLoading) {
@@ -104,12 +113,10 @@ export default function Dashboard() {
             >
               <div className="flex items-center gap-4">
                 <div className={cn(
-                  'w-12 h-12 brutal-border flex items-center justify-center text-2xl',
-                  agent.id === 'claude-code' && 'bg-foreground text-background',
-                  agent.id === 'codex' && 'bg-[var(--accent)] text-white',
+                  'w-12 h-12 brutal-border flex items-center justify-center bg-background',
                   agent.id === 'shared' && 'diagonal-stripe'
                 )}>
-                  {getAgentMonogram(agent.id)}
+                  <AgentIcon agentId={agent.id} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold uppercase tracking-wide">{getAgentLabel(agent.id)}</h3>
@@ -150,9 +157,13 @@ export default function Dashboard() {
                   {String(idx + 1).padStart(2, '0')}
                 </span>
                 <div>
-                  <div className="font-bold uppercase tracking-wide group-hover:text-[var(--accent)] transition-colors">
+                  <button
+                    type="button"
+                    onClick={() => handleViewDetail(skill)}
+                    className="font-bold uppercase tracking-wide group-hover:text-[var(--accent)] transition-colors text-left"
+                  >
                     {skill.name}
-                  </div>
+                  </button>
                   <div className="text-[10px] text-muted-foreground line-clamp-1 max-w-md tracking-wider">
                     {skill.description}
                   </div>
@@ -238,6 +249,12 @@ export default function Dashboard() {
           </button>
         </div>
       </div>
+
+      <SkillDetailDialog
+        skill={selectedSkill}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+      />
     </div>
   );
 }

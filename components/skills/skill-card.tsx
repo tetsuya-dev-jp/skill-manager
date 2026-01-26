@@ -59,9 +59,13 @@ export function SkillCard({ skill, onViewDetail, onShare }: SkillCardProps) {
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold uppercase tracking-wide truncate group-hover:text-[var(--accent)] transition-colors">
+            <button
+              type="button"
+              onClick={() => onViewDetail(skill)}
+              className="font-bold uppercase tracking-wide truncate group-hover:text-[var(--accent)] transition-colors text-left w-full"
+            >
               {skill.name}
-            </h3>
+            </button>
             <p className="text-[10px] text-muted-foreground line-clamp-2 mt-2 tracking-wider leading-relaxed">
               {skill.description || 'No description'}
             </p>
