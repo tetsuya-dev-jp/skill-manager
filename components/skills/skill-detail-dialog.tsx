@@ -12,6 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { getAgentLabel } from '@/lib/agents/specs';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface SkillDetailDialogProps {
   skill: Skill | null;
@@ -78,9 +80,81 @@ export function SkillDetailDialog({ skill, open, onOpenChange }: SkillDetailDial
         <div className="flex-1 overflow-auto p-6">
           {activeTab === 'content' ? (
             <div className="bg-muted brutal-border p-4">
-              <pre className="text-sm whitespace-pre-wrap font-mono">
-                {skill.content || 'NO CONTENT'}
-              </pre>
+              {skill.content ? (
+                <div className="space-y-4 text-sm leading-relaxed">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      h1: ({ className, ...props }) => (
+                        <h1
+                          className={cn('text-2xl font-bold tracking-wide', className)}
+                          {...props}
+                        />
+                      ),
+                      h2: ({ className, ...props }) => (
+                        <h2
+                          className={cn('text-xl font-bold tracking-wide', className)}
+                          {...props}
+                        />
+                      ),
+                      h3: ({ className, ...props }) => (
+                        <h3
+                          className={cn('text-lg font-bold tracking-wide', className)}
+                          {...props}
+                        />
+                      ),
+                      p: ({ className, ...props }) => (
+                        <p className={cn('text-sm', className)} {...props} />
+                      ),
+                      ul: ({ className, ...props }) => (
+                        <ul className={cn('list-disc pl-5 space-y-2', className)} {...props} />
+                      ),
+                      ol: ({ className, ...props }) => (
+                        <ol className={cn('list-decimal pl-5 space-y-2', className)} {...props} />
+                      ),
+                      li: ({ className, ...props }) => (
+                        <li className={cn('text-sm', className)} {...props} />
+                      ),
+                      a: ({ className, ...props }) => (
+                        <a
+                          className={cn('text-[var(--accent)] underline', className)}
+                          {...props}
+                        />
+                      ),
+                      blockquote: ({ className, ...props }) => (
+                        <blockquote
+                          className={cn('border-l-2 border-foreground pl-4 italic', className)}
+                          {...props}
+                        />
+                      ),
+                      code: ({ inline, className, ...props }) => (
+                        <code
+                          className={cn(
+                            inline
+                              ? 'font-mono text-xs bg-background px-1.5 py-0.5'
+                              : 'font-mono text-xs',
+                            className
+                          )}
+                          {...props}
+                        />
+                      ),
+                      pre: ({ className, ...props }) => (
+                        <pre
+                          className={cn(
+                            'bg-background brutal-border p-3 overflow-x-auto text-xs font-mono',
+                            className
+                          )}
+                          {...props}
+                        />
+                      ),
+                    }}
+                  >
+                    {skill.content}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                <p className="text-sm font-mono text-muted-foreground">NO CONTENT</p>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
