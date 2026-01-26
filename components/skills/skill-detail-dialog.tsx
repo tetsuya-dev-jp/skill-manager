@@ -11,6 +11,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { getAgentLabel } from '@/lib/agents/specs';
 
 interface SkillDetailDialogProps {
   skill: Skill | null;
@@ -22,12 +23,6 @@ export function SkillDetailDialog({ skill, open, onOpenChange }: SkillDetailDial
   const [activeTab, setActiveTab] = useState<'content' | 'metadata'>('content');
 
   if (!skill) return null;
-
-  const agentLabel = {
-    claude: 'CLAUDE',
-    codex: 'CODEX',
-    shared: 'SHARED',
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -43,7 +38,7 @@ export function SkillDetailDialog({ skill, open, onOpenChange }: SkillDetailDial
 
         <div className="flex items-center gap-2 px-6 py-3 border-b-2 border-foreground">
           <Badge variant="outline" className="brutal-border font-bold uppercase text-[10px]">
-            {agentLabel[skill.agent]}
+            {getAgentLabel(skill.agent)}
           </Badge>
           <Badge variant="outline" className="brutal-border font-mono text-[10px]">
             v{skill.version}

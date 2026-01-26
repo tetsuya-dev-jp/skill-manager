@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { ApiResponse, Skill, Agent } from '@/types';
 import { cn } from '@/lib/utils';
+import { getAgentLabel, getAgentMonogram } from '@/lib/agents/specs';
 
 export default function Dashboard() {
   const { data: skillsRes, isLoading: skillsLoading } = useQuery({
@@ -25,6 +26,7 @@ export default function Dashboard() {
 
   const skills = skillsRes?.data || [];
   const agents = agentsRes?.data || [];
+  const visibleAgents = agents.filter(agent => agent.enabled || agent.skillCount > 0 || agent.id === 'shared');
 
   const recentSkills = [...skills]
     .sort((a, b) => b.name.localeCompare(a.name))
@@ -93,7 +95,7 @@ export default function Dashboard() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
-          {agents.map((agent, idx) => (
+          {visibleAgents.map((agent) => (
             <div
               key={agent.id}
               className={cn(
@@ -103,16 +105,14 @@ export default function Dashboard() {
               <div className="flex items-center gap-4">
                 <div className={cn(
                   'w-12 h-12 brutal-border flex items-center justify-center text-2xl',
-                  agent.id === 'claude' && 'bg-foreground text-background',
+                  agent.id === 'claude-code' && 'bg-foreground text-background',
                   agent.id === 'codex' && 'bg-[var(--accent)] text-white',
                   agent.id === 'shared' && 'diagonal-stripe'
                 )}>
-                  {agent.id === 'claude' && '▲'}
-                  {agent.id === 'codex' && '■'}
-                  {agent.id === 'shared' && '●'}
+                  {getAgentMonogram(agent.id)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-bold uppercase tracking-wide">{agent.name}</h3>
+                  <h3 className="font-bold uppercase tracking-wide">{getAgentLabel(agent.id)}</h3>
                   <p className="text-[9px] text-muted-foreground truncate tracking-wider">
                     {agent.skillsPath}
                   </p>

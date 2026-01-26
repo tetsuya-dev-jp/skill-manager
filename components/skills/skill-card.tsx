@@ -13,6 +13,7 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { getAgentLabel } from '@/lib/agents/specs';
 
 interface SkillCardProps {
   skill: Skill;
@@ -106,12 +107,12 @@ export function SkillCard({ skill, onViewDetail, onShare }: SkillCardProps) {
             variant="outline"
             className={cn(
               'brutal-border text-[9px] tracking-wider',
-              skill.agent === 'claude' && 'bg-foreground text-background',
+              skill.agent === 'claude-code' && 'bg-foreground text-background',
               skill.agent === 'codex' && 'bg-[var(--accent)] text-white border-[var(--accent)]',
               skill.agent === 'shared' && ''
             )}
           >
-            {skill.agent.toUpperCase()}
+            {getAgentLabel(skill.agent)}
           </Badge>
           {skill.isShared && (
             <Badge className="bg-[var(--accent)] text-white text-[9px] tracking-wider">

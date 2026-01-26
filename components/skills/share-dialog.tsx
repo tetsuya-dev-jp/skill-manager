@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { AGENT_SPECS, getAgentLabel } from '@/lib/agents/specs';
 
 interface ShareDialogProps {
   skill: Skill | null;
@@ -46,11 +47,12 @@ export function ShareDialog({ skill, open, onOpenChange }: ShareDialogProps) {
 
   if (!skill) return null;
 
-  const allAgents: { id: AgentType; name: string }[] = [
-    { id: 'claude', name: 'CLAUDE CODE' },
-    { id: 'codex', name: 'CLINE/CODEX' },
-  ];
-  const agents = allAgents.filter(a => a.id !== skill.agent);
+  const agents: { id: AgentType; name: string }[] = AGENT_SPECS
+    .filter((agent) => agent.id !== skill.agent)
+    .map((agent) => ({
+      id: agent.id,
+      name: getAgentLabel(agent.id),
+    }));
 
   const handleAgentToggle = (agentId: AgentType) => {
     if (selectedAgents.includes(agentId)) {

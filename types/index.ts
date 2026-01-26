@@ -1,3 +1,5 @@
+import type { AgentId } from '@/lib/agents/specs';
+
 // スキル関連の型定義
 
 export interface SkillMetadata {
@@ -22,13 +24,13 @@ export interface Skill {
   content: string;
 }
 
-export type AgentType = 'claude' | 'codex' | 'shared';
+export type AgentType = AgentId | 'shared';
 
 export interface Agent {
   id: AgentType;
   name: string;
   skillsPath: string;
-  configPath: string;
+  configPath?: string;
   enabled: boolean;
 }
 

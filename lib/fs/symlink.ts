@@ -1,18 +1,30 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import os from 'os';
 import { Skill, SkillLock, AgentType } from '@/types';
+import { AGENT_SPECS, type AgentId } from '@/lib/agents/specs';
+import { getGlobalSkillsPath, SHARED_LOCK_FILE, SHARED_SKILLS_DIR } from '@/lib/agents/paths';
 import { parseSkillMd, generateSkillId } from '@/lib/skills/parser';
 
-const AGENTS_DIR = path.join(os.homedir(), '.agents');
-const SHARED_SKILLS_DIR = path.join(AGENTS_DIR, 'skills');
-const LOCK_FILE = path.join(AGENTS_DIR, '.skill-lock.json');
+const AGENT_PATHS = AGENT_SPECS.reduce((acc, spec) => {
+  acc[spec.id] = getGlobalSkillsPath(spec.id);
+  return acc;
+}, {} as Record<AgentId, string>);
 
-const AGENT_PATHS: Record<AgentType, string> = {
-  claude: path.join(os.homedir(), '.claude', 'skills'),
-  codex: path.join(os.homedir(), '.codex', 'skills'),
+const AGENT_PATHS_WITH_SHARED: Record<AgentType, string> = {
+  ...AGENT_PATHS,
   shared: SHARED_SKILLS_DIR,
 };
+
+const KNOWN_AGENT_IDS = new Set<AgentType>([
+  ...AGENT_SPECS.map((spec) => spec.id),
+  'shared',
+]);
+
+function normalizeAgentId(value: string): AgentType | null {
+  if (value === 'claude') return 'claude-code';
+  if (KNOWN_AGENT_IDS.has(value as AgentType)) return value as AgentType;
+  return null;
+}
 
 export async function ensureSharedDir(): Promise<void> {
   await fs.mkdir(SHARED_SKILLS_DIR, { recursive: true });
@@ -20,16 +32,37 @@ export async function ensureSharedDir(): Promise<void> {
 
 export async function getSkillLock(): Promise<SkillLock> {
   try {
-    const content = await fs.readFile(LOCK_FILE, 'utf-8');
-    return JSON.parse(content);
+    const content = await fs.readFile(SHARED_LOCK_FILE, 'utf-8');
+    const parsed = JSON.parse(content) as SkillLock;
+    const normalized: SkillLock = { version: parsed.version || '1.0.0', skills: {} };
+
+    for (const [skillName, data] of Object.entries(parsed.skills || {})) {
+      const source = normalizeAgentId(String(data.source));
+      if (!source) continue;
+
+      const sharedWith = Array.isArray(data.sharedWith)
+        ? data.sharedWith
+            .map((agent) => normalizeAgentId(String(agent)))
+            .filter((agent): agent is AgentType => Boolean(agent))
+        : [];
+
+      normalized.skills[skillName] = {
+        source,
+        sharedWith,
+        createdAt: data.createdAt || new Date().toISOString(),
+        updatedAt: data.updatedAt || new Date().toISOString(),
+      };
+    }
+
+    return normalized;
   } catch {
     return { version: '1.0.0', skills: {} };
   }
 }
 
 export async function saveSkillLock(lock: SkillLock): Promise<void> {
-  await fs.mkdir(AGENTS_DIR, { recursive: true });
-  await fs.writeFile(LOCK_FILE, JSON.stringify(lock, null, 2));
+  await fs.mkdir(path.dirname(SHARED_LOCK_FILE), { recursive: true });
+  await fs.writeFile(SHARED_LOCK_FILE, JSON.stringify(lock, null, 2));
 }
 
 export async function getSharedSkills(): Promise<Skill[]> {
@@ -83,7 +116,7 @@ export async function shareSkill(
 ): Promise<void> {
   await ensureSharedDir();
 
-  const sourcePath = path.join(AGENT_PATHS[sourceAgent], skillName);
+  const sourcePath = path.join(AGENT_PATHS_WITH_SHARED[sourceAgent], skillName);
   const sharedPath = path.join(SHARED_SKILLS_DIR, skillName);
 
   // ソースが共有ディレクトリでない場合、まず共有ディレクトリにコピー
@@ -101,7 +134,7 @@ export async function shareSkill(
       await copyDir(sourcePath, sharedPath);
       await fs.rm(sourcePath, { recursive: true, force: true });
       // 元の場所にシンボリックリンクを作成
-      const relativePath = path.relative(AGENT_PATHS[sourceAgent], sharedPath);
+      const relativePath = path.relative(AGENT_PATHS_WITH_SHARED[sourceAgent], sharedPath);
       await fs.symlink(relativePath, sourcePath);
     }
   }
@@ -110,7 +143,7 @@ export async function shareSkill(
   for (const targetAgent of targetAgents) {
     if (targetAgent === 'shared' || targetAgent === sourceAgent) continue;
 
-    const targetPath = path.join(AGENT_PATHS[targetAgent], skillName);
+    const targetPath = path.join(AGENT_PATHS_WITH_SHARED[targetAgent], skillName);
 
     try {
       await fs.access(targetPath);
@@ -125,8 +158,8 @@ export async function shareSkill(
       // 存在しない - OK
     }
 
-    await fs.mkdir(AGENT_PATHS[targetAgent], { recursive: true });
-    const relativePath = path.relative(AGENT_PATHS[targetAgent], sharedPath);
+    await fs.mkdir(AGENT_PATHS_WITH_SHARED[targetAgent], { recursive: true });
+    const relativePath = path.relative(AGENT_PATHS_WITH_SHARED[targetAgent], sharedPath);
     await fs.symlink(relativePath, targetPath);
   }
 
@@ -142,7 +175,7 @@ export async function shareSkill(
 }
 
 export async function unshareSkill(skillName: string, targetAgent: AgentType): Promise<void> {
-  const targetPath = path.join(AGENT_PATHS[targetAgent], skillName);
+  const targetPath = path.join(AGENT_PATHS_WITH_SHARED[targetAgent], skillName);
 
   try {
     const stat = await fs.lstat(targetPath);
@@ -182,7 +215,7 @@ async function copyDir(src: string, dest: string): Promise<void> {
 
 export async function deleteSharedSkill(skillName: string): Promise<void> {
   // すべてのエージェントからシンボリックリンクを削除
-  for (const [agent, agentPath] of Object.entries(AGENT_PATHS)) {
+  for (const [agent, agentPath] of Object.entries(AGENT_PATHS_WITH_SHARED)) {
     if (agent === 'shared') continue;
     const linkPath = path.join(agentPath, skillName);
     try {

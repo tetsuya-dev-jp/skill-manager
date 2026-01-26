@@ -10,7 +10,7 @@ const CONFIG_FILE = path.join(CODEX_DIR, 'config.toml');
 
 export const codexAgent: Agent = {
   id: 'codex',
-  name: 'Cline/Codex',
+  name: 'Codex',
   skillsPath: SKILLS_DIR,
   configPath: CONFIG_FILE,
   enabled: true,

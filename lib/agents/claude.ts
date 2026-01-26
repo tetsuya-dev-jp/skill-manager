@@ -9,7 +9,7 @@ const SKILLS_DIR = path.join(CLAUDE_DIR, 'skills');
 const SETTINGS_FILE = path.join(CLAUDE_DIR, 'settings.json');
 
 export const claudeAgent: Agent = {
-  id: 'claude',
+  id: 'claude-code',
   name: 'Claude Code',
   skillsPath: SKILLS_DIR,
   configPath: SETTINGS_FILE,
@@ -43,12 +43,12 @@ export async function getClaudeSkills(): Promise<Skill[]> {
         const isShared = isSymlink && realPath.includes('.agents/skills');
 
         skills.push({
-          id: generateSkillId(entry.name, 'claude'),
+          id: generateSkillId(entry.name, 'claude-code'),
           name: metadata.name || entry.name,
           description: metadata.description,
           version: metadata.version,
           path: skillPath,
-          agent: 'claude',
+          agent: 'claude-code',
           isShared,
           isSymlink,
           metadata,

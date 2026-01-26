@@ -15,10 +15,6 @@ export async function GET(
     let config: unknown;
 
     switch (agentType) {
-      case 'claude':
-        // Claude Code設定は別途管理されるため、ここでは空を返す
-        config = {};
-        break;
       case 'codex':
         config = await getCodexConfig();
         break;
@@ -26,10 +22,9 @@ export async function GET(
         config = await getSkillLock();
         break;
       default:
-        return NextResponse.json<ApiResponse<null>>({
-          success: false,
-          error: 'Unknown agent',
-        }, { status: 404 });
+        // エージェント固有の設定がない場合は空を返す
+        config = {};
+        break;
     }
 
     return NextResponse.json<ApiResponse<unknown>>({

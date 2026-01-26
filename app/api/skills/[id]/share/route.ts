@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllSkills, shareSkill, unshareSkill } from '@/lib/agents';
 import { AgentType, ApiResponse } from '@/types';
+import { isAgentId } from '@/lib/agents/specs';
 
 // POST /api/skills/[id]/share - スキル共有
 export async function POST(
@@ -10,7 +11,18 @@ export async function POST(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { targetAgents } = body as { targetAgents: AgentType[] };
+    const { targetAgents } = body as { targetAgents?: unknown };
+    const candidateTargets = Array.isArray(targetAgents) ? targetAgents : [];
+    const filteredTargets = candidateTargets.filter(
+      (agent) => agent === 'shared' || isAgentId(agent)
+    ) as AgentType[];
+
+    if (filteredTargets.length === 0) {
+      return NextResponse.json<ApiResponse<null>>({
+        success: false,
+        error: 'At least one target agent is required',
+      }, { status: 400 });
+    }
 
     const skills = await getAllSkills();
     const skill = skills.find(s => s.id === id);
@@ -23,11 +35,11 @@ export async function POST(
     }
 
     const skillName = id.split('@')[0];
-    await shareSkill(skillName, skill.agent, targetAgents);
+    await shareSkill(skillName, skill.agent, filteredTargets);
 
     return NextResponse.json<ApiResponse<{ id: string; sharedWith: AgentType[] }>>({
       success: true,
-      data: { id, sharedWith: targetAgents },
+      data: { id, sharedWith: filteredTargets },
     });
   } catch (error) {
     return NextResponse.json<ApiResponse<null>>({
@@ -47,7 +59,7 @@ export async function DELETE(
     const { searchParams } = new URL(request.url);
     const targetAgent = searchParams.get('agent') as AgentType | null;
 
-    if (!targetAgent) {
+    if (!targetAgent || (targetAgent !== 'shared' && !isAgentId(targetAgent))) {
       return NextResponse.json<ApiResponse<null>>({
         success: false,
         error: 'Target agent is required',

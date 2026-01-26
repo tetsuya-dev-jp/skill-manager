@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllSkills, getSkillsByAgent, installSkill } from '@/lib/agents';
 import { AgentType, ApiResponse, Skill } from '@/types';
+import { isAgentId } from '@/lib/agents/specs';
 import JSZip from 'jszip';
 import path from 'path';
 import os from 'os';
@@ -45,9 +46,18 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const targetAgents: AgentType[] = targetAgentsStr
-      ? JSON.parse(targetAgentsStr)
-      : ['claude'];
+    const parsed = targetAgentsStr ? JSON.parse(targetAgentsStr) : ['claude-code'];
+    const parsedAgents: string[] = Array.isArray(parsed) ? parsed : [];
+    const targetAgents: AgentType[] = parsedAgents.filter(
+      (agent) => agent === 'shared' || isAgentId(agent)
+    ) as AgentType[];
+
+    if (targetAgents.length === 0) {
+      return NextResponse.json<ApiResponse<null>>({
+        success: false,
+        error: 'No valid target agents provided',
+      }, { status: 400 });
+    }
 
     const buffer = await file.arrayBuffer();
     const zip = new JSZip();

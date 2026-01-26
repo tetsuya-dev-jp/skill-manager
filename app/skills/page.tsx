@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { SkillCard } from '@/components/skills/skill-card';
@@ -9,15 +9,9 @@ import { ShareDialog } from '@/components/skills/share-dialog';
 import { ApiResponse, Skill, AgentType } from '@/types';
 import { cn } from '@/lib/utils';
 import { useSearchParams } from 'next/navigation';
+import { getAgentLabel, isAgentId } from '@/lib/agents/specs';
 
 type FilterType = 'all' | AgentType;
-
-const filterOptions: { value: FilterType; label: string }[] = [
-  { value: 'all', label: 'ALL' },
-  { value: 'claude', label: 'CLAUDE' },
-  { value: 'codex', label: 'CODEX' },
-  { value: 'shared', label: 'SHARED' },
-];
 
 export default function SkillsPage() {
   const searchParams = useSearchParams();
@@ -30,8 +24,11 @@ export default function SkillsPage() {
 
   useEffect(() => {
     if (!paramFilter) return;
-    const isValidFilter = filterOptions.some((option) => option.value === paramFilter);
-    if (isValidFilter) {
+    if (paramFilter === 'all') {
+      setFilter('all');
+      return;
+    }
+    if (paramFilter === 'shared' || isAgentId(paramFilter)) {
       setFilter(paramFilter as FilterType);
     }
   }, [paramFilter]);
@@ -45,6 +42,32 @@ export default function SkillsPage() {
   });
 
   const skills = skillsRes?.data || [];
+
+  const filterOptions = useMemo(() => {
+    const agentIds = new Set<AgentType>();
+
+    for (const skill of skills) {
+      agentIds.add(skill.agent);
+    }
+
+    if (paramFilter && paramFilter !== 'all') {
+      if (paramFilter === 'shared' || isAgentId(paramFilter)) {
+        agentIds.add(paramFilter as AgentType);
+      }
+    }
+
+    const sortedAgents = Array.from(agentIds).sort((a, b) =>
+      getAgentLabel(a).localeCompare(getAgentLabel(b))
+    );
+
+    return [
+      { value: 'all' as const, label: 'ALL' },
+      ...sortedAgents.map((agent) => ({
+        value: agent,
+        label: getAgentLabel(agent),
+      })),
+    ];
+  }, [skills, paramFilter]);
 
   const filteredSkills = skills.filter((skill) => {
     const matchesFilter = filter === 'all' || skill.agent === filter;
