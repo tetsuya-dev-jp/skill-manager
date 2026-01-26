@@ -105,10 +105,11 @@ export default function Dashboard() {
 
         <div className="grid gap-4 md:grid-cols-3">
           {visibleAgents.map((agent) => (
-            <div
+            <Link
               key={agent.id}
+              href={`/skills?agent=${agent.id}`}
               className={cn(
-                'brutal-border-thick brutal-shadow-hover p-6 bg-background transition-all'
+                'brutal-border-thick brutal-shadow-hover p-6 bg-background transition-all block'
               )}
             >
               <div className="flex items-center gap-4">
@@ -129,7 +130,7 @@ export default function Dashboard() {
                 <span className="text-brutal-display text-5xl">{agent.skillCount}</span>
                 <span className="text-[10px] text-muted-foreground tracking-widest">SKILLS</span>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

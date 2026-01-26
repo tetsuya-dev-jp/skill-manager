@@ -23,7 +23,11 @@ export function Topbar() {
 
       <div className="relative z-10 mx-auto flex w-full max-w-[1400px] flex-col gap-5 px-6 py-6 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
-          <div className="leading-none">
+          <Link
+            href="/"
+            aria-label="Go to dashboard"
+            className="leading-none transition-opacity hover:opacity-80"
+          >
             <div className="text-brutal-display text-3xl tracking-wide md:hidden">
               SKILL <span className="text-[var(--accent)]">MANAGER</span>
             </div>
@@ -35,7 +39,7 @@ export function Topbar() {
                 MANAGER
               </div>
             </div>
-          </div>
+          </Link>
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
