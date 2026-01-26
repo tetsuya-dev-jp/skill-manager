@@ -97,8 +97,7 @@ export default function Dashboard() {
             <div
               key={agent.id}
               className={cn(
-                'brutal-border-thick brutal-shadow-hover p-6 bg-background transition-all',
-                idx === 1 && 'transform -rotate-1'
+                'brutal-border-thick brutal-shadow-hover p-6 bg-background transition-all'
               )}
             >
               <div className="flex items-center gap-4">
