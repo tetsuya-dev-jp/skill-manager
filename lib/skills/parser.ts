@@ -1,12 +1,33 @@
 import matter from 'gray-matter';
 import { SkillMetadata } from '@/types';
 
+function parseDescriptionField(description: unknown): string {
+  if (!description) return '';
+  if (typeof description === 'string') return description;
+  if (Array.isArray(description)) {
+    return description
+      .map((item) => {
+        if (typeof item === 'string') return item;
+        if (typeof item === 'object' && item !== null) {
+          // オブジェクトの場合、値を結合
+          return Object.values(item).join(' ');
+        }
+        return String(item);
+      })
+      .join(' ');
+  }
+  if (typeof description === 'object' && description !== null) {
+    return Object.values(description).join(' ');
+  }
+  return String(description);
+}
+
 export function parseSkillMd(content: string): { metadata: SkillMetadata; content: string } {
   const { data, content: markdownContent } = matter(content);
 
   const metadata: SkillMetadata = {
     name: data.name || 'unknown',
-    description: data.description || '',
+    description: parseDescriptionField(data.description),
     version: data.version || '1.0.0',
     license: data.license,
     author: data.author,
